@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Recall
-//
-//  Created by Jacob Bodera on 2024-11-22.
-//
-
 import SwiftUI
 
 struct TabViewApp: App {
@@ -36,45 +29,78 @@ struct ContentView: View {
     }
 }
 
+struct TrackedObject: Identifiable, Decodable {
+    let id: Int
+    let name: String
+    let last_location: String
+}
+
+// Networking manager to fetch all objects
+class NetworkManager: ObservableObject {
+    @Published var objects: [TrackedObject] = []
+
+    func fetchAllData() {
+        guard let url = URL(string: "http://127.0.0.1:8000/ObjectTracking/") else { return }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let data = data {
+                do {
+                    let decodedData = try JSONDecoder().decode([TrackedObject].self, from: data)
+                    DispatchQueue.main.async {
+                        self.objects = decodedData
+                    }
+                } catch {
+                    print("Error decoding JSON: \(error)")
+                }
+            }
+        }.resume()
+    }
+}
+
 struct HomeView: View {
-    let items = [
-        (image: "laptopcomputer", name: "Laptop", location: "Living Room"),
-        (image: "phone", name: "Phone", location: "Bedroom"),
-        (image: "tv", name: "Television", location: "Family Room"),
-        (image: "wallet.pass", name: "Wallet", location: "Dining Table"),
-        (image: "cup.and.saucer", name: "Mug", location: "Kitchen"),
-        (image: "eyeglasses", name: "Glasses", location: "Desk"),
-        (image: "key", name: "Keys", location: "Entryway"),
-        (image: "books.vertical", name: "Books", location: "Bookshelf"),
-        (image: "lightbulb", name: "Lamp", location: "Side Table"),
-        (image: "gamecontroller", name: "Game Controller", location: "Entertainment Center"),
-        (image: "headphones", name: "Headphones", location: "Bedside Table"),
-        (image: "backpack", name: "Backpack", location: "Closet")
-    ]
+    @StateObject private var networkManager = NetworkManager()
 
     var body: some View {
         NavigationView {
-            List(items, id: \.name) { item in
-                HStack(spacing: 15) {
-                    Image(systemName: item.image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.blue)
-
-                    VStack(alignment: .leading) {
-                        Text(item.name)
-                            .font(.headline)
-
-                        Text("Location: \(item.location)")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding(.vertical, 5)
+            List(networkManager.objects) { object in
+                ObjectCellView(object: object)
             }
-            .navigationTitle("Home")
+            .listStyle(PlainListStyle())
+            .refreshable {
+                networkManager.fetchAllData() // Refresh when swiped down
+            }
+            .navigationTitle("Tracked Objects") // Uses default navigation title
+            .onAppear {
+                networkManager.fetchAllData()
+            }
         }
+    }
+}
+
+
+struct ObjectCellView: View {
+    let object: TrackedObject
+
+    var body: some View {
+        HStack {
+            Image(systemName: "location.circle.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .foregroundColor(.blue)
+
+            VStack(alignment: .leading) {
+                Text(object.name)
+                    .font(.headline)
+                Text("Last seen at: \(object.last_location)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+            .padding(.leading, 10) // Adds space between the image and text
+
+            Spacer()
+        }
+        .padding(8)
     }
 }
 
@@ -100,7 +126,7 @@ struct ProfileView: View {
                     Text("Phone: +1 (123) 456-7890")
                     Text("Address: 123 Main St, Waterloo, ON")
                 }
-
+                
                 Section(header: Text("Account Settings")) {
                     Button("Edit Profile") {
                         print("Edit Profile tapped")
@@ -124,7 +150,7 @@ struct SettingsView: View {
                     Toggle("Enable Notifications", isOn: .constant(true))
                     Toggle("Dark Mode", isOn: .constant(false))
                 }
-
+                
                 Section(header: Text("Account")) {
                     Button("Change Password") {
                         print("Change Password tapped")
@@ -133,7 +159,7 @@ struct SettingsView: View {
                         print("Privacy Settings tapped")
                     }
                 }
-
+                
                 Section(header: Text("About")) {
                     Button("Terms of Service") {
                         print("Terms of Service tapped")
@@ -155,7 +181,6 @@ struct DetailsView: View {
             .padding()
     }
 }
-
 
 #Preview {
     ContentView()
