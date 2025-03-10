@@ -25,8 +25,11 @@ struct CreateObjectView: View {
                 Button(action: {
                     networkManager.createObject(name: objectName) { objectID in
                         if let id = objectID {
+                            print("Object created with ID: \(id)") // Debugging print statement
                             self.objectID = id
                             isUploadingImage = true
+                        } else {
+                            print("Failed to create object") // Debugging failed creation
                         }
                     }
                 }) {
@@ -40,11 +43,11 @@ struct CreateObjectView: View {
                         .padding(.horizontal)
                         .opacity(objectName.isEmpty ? 0.6 : 1.0)
                 }
-                .disabled(objectName.isEmpty) // Disable button if input is empty
+                .disabled(objectName.isEmpty)
             }
             .padding()
             .navigationDestination(isPresented: $isUploadingImage) {
-                if let objectID = objectID { // Safely unwrap objectID
+                if let objectID = objectID {
                     UploadImageView(isCreatingObject: $isCreatingObject, objectID: objectID)
                 }
             }

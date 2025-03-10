@@ -34,7 +34,7 @@ class NetworkManager: ObservableObject {
     }
 
     func createObject(name: String, completion: @escaping (Int?) -> Void) {
-        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/CreateObject/"),
+        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/ObjectTracking/"),
               let token = accessToken else {
             print("Missing access token")
             return
@@ -48,18 +48,31 @@ class NetworkManager: ObservableObject {
         let body = ["name": name]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
+        print("Sending request to \(url) with body: \(body)")
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                do {
-                    if let decodedData = try? JSONDecoder().decode([String: Int].self, from: data),
-                       let objectID = decodedData["id"] {
-                        DispatchQueue.main.async {
-                            completion(objectID)
-                        }
-                    }
-                }
-            } else if let error = error {
+            if let error = error {
                 print("Error creating object: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+            
+            guard let data = data else {
+                print("No data returned from server")
+                completion(nil)
+                return
+            }
+            
+            print("Received response data: \(String(data: data, encoding: .utf8) ?? "")")
+            
+            do {
+                let decodedData = try JSONDecoder().decode(CreateObjectResponse.self, from: data)
+                DispatchQueue.main.async {
+                    completion(decodedData.id)
+                }
+            } catch {
+                print("Failed to decode response: \(error)")
+                completion(nil)
             }
         }.resume()
     }
