@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var authToken: String? // Store authentication token
+    @State private var access: String? // Store authentication token
     @State private var validationStatus: String = "" // Store validation result
     
     var body: some View {
@@ -35,28 +35,31 @@ struct ProfileView: View {
                     if !validationStatus.isEmpty {
                         Text(validationStatus)
                             .font(.caption)
-                            .foregroundColor(authToken != nil ? .green : .red)
+                            .foregroundColor(access != nil ? .green : .red)
                     }
                     
                     Button("Logout") {
-                        print("Logout tapped")
+                        logout()
                     }
                     .foregroundColor(.red)
                 }
             }
             .navigationTitle("Your Profile")
         }
+        .onAppear {
+            loadAccessToken()
+        }
     }
     
     func validateUser() {
-        guard let url = URL(string: "http://127.0.0.1:8000/login/") else { return }
+        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/login/") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: String] = [
-            "email": "capstone@gmail.com",
-            "password": "password123"
+            "email": "wesleykim2002@gmail.com",
+            "password": "Password123"
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
@@ -64,10 +67,11 @@ struct ProfileView: View {
             if let data = data {
                 do {
                     if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let token = jsonResponse["authentication_token"] as? String {
+                       let token = jsonResponse["access"] as? String {
                         DispatchQueue.main.async {
-                            self.authToken = token
+                            self.access = token
                             self.validationStatus = "Validation successful!"
+                            KeychainHelper.shared.save(token, forKey: "accessToken") // Save token in Keychain
                         }
                     } else {
                         DispatchQueue.main.async {
@@ -85,5 +89,15 @@ struct ProfileView: View {
                 }
             }
         }.resume()
+    }
+    
+    func loadAccessToken() {
+        self.access = KeychainHelper.shared.get(forKey: "accessToken")
+    }
+    
+    func logout() {
+        KeychainHelper.shared.delete(forKey: "accessToken")
+        self.access = nil
+        self.validationStatus = "Logged out successfully."
     }
 }
