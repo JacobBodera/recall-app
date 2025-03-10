@@ -9,6 +9,6 @@
 struct ObjectTracking: Identifiable, Decodable {
     let id: Int
     let name: String
-    let location_image: String // Base64 encoded image
-    let location_description: String
+    let location_image: String? // Base64 encoded image
+    let location_description: String?
 }

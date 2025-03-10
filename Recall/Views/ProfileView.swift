@@ -51,8 +51,12 @@ struct ProfileView: View {
         }
     }
     
+    struct AuthResponse: Decodable {
+        let access: String
+    }
+
     func validateUser() {
-        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/login/") else { return }
+        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/api/auth/login/") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -66,21 +70,18 @@ struct ProfileView: View {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
                 do {
-                    if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let token = jsonResponse["access"] as? String {
-                        DispatchQueue.main.async {
-                            self.access = token
-                            self.validationStatus = "Validation successful!"
-                            KeychainHelper.shared.save(token, forKey: "accessToken") // Save token in Keychain
-                        }
-                    } else {
-                        DispatchQueue.main.async {
-                            self.validationStatus = "Invalid credentials or server error."
-                        }
+                    let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
+                    DispatchQueue.main.async {
+                        self.access = authResponse.access
+                        self.validationStatus = "Validation successful!"
+                        KeychainHelper.shared.save(authResponse.access, forKey: "accessToken") // Save token in Keychain
                     }
                 } catch {
+                    if let rawString = String(data: data, encoding: .utf8) {
+                        print("Raw Response: \(rawString)") // Debugging output
+                    }
                     DispatchQueue.main.async {
-                        self.validationStatus = "Error decoding response."
+                        self.validationStatus = "Error decoding response: \(error.localizedDescription)"
                     }
                 }
             } else if let error = error {
