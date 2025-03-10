@@ -1,7 +1,7 @@
 import Foundation
 
 class NetworkManager: ObservableObject {
-    @Published var objects: [TrackedObject] = []
+    @Published var objects: [ObjectTracking] = []
     
     private var accessToken: String? {
         KeychainHelper.shared.get(forKey: "accessToken")
@@ -20,7 +20,7 @@ class NetworkManager: ObservableObject {
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
                 do {
-                    let decodedData = try JSONDecoder().decode([TrackedObject].self, from: data)
+                    let decodedData = try JSONDecoder().decode([ObjectTracking].self, from: data)
                     DispatchQueue.main.async {
                         self.objects = decodedData
                     }
@@ -69,7 +69,7 @@ class NetworkManager: ObservableObject {
 //import Foundation
 //
 //class NetworkManager: ObservableObject {
-//    @Published var objects: [TrackedObject] = []
+//    @Published var objects: [ObjectTracking] = []
 //
 //    func fetchAllData() {
 //        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/ObjectTracking/") else { return }
@@ -77,7 +77,7 @@ class NetworkManager: ObservableObject {
 //        URLSession.shared.dataTask(with: url) { data, response, error in
 //            if let data = data {
 //                do {
-//                    let decodedData = try JSONDecoder().decode([TrackedObject].self, from: data)
+//                    let decodedData = try JSONDecoder().decode([ObjectTracking].self, from: data)
 //                    DispatchQueue.main.async {
 //                        self.objects = decodedData
 //                    }

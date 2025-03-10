@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ObjectCellView: View {
-    let object: TrackedObject
+    let object: ObjectTracking
     
     func decodeBase64Image(_ base64String: String) -> UIImage? {
         guard let imageData = Data(base64Encoded: base64String, options: .ignoreUnknownCharacters) else {
@@ -12,7 +12,7 @@ struct ObjectCellView: View {
 
     var body: some View {
         HStack {
-            if let uiImage = decodeBase64Image(object.image) {
+            if let uiImage = decodeBase64Image(object.location_image) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFit()
@@ -29,7 +29,7 @@ struct ObjectCellView: View {
             VStack(alignment: .leading) {
                 Text(object.name)
                     .font(.headline)
-                Text("Last seen at: \(object.last_location)")
+                Text("Last seen at: \(object.location_description)")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
