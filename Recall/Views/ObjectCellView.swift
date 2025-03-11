@@ -18,7 +18,7 @@ struct ObjectCellView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 40, height: 40)
-                    .clipShape(Circle())
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 Image(systemName: "photo") // Fallback image
                     .resizable()
@@ -26,7 +26,7 @@ struct ObjectCellView: View {
                     .frame(width: 40, height: 40)
                     .foregroundColor(.gray)
             }
-
+            
             VStack(alignment: .leading) {
                 Text(object.name)
                     .font(.headline)

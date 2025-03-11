@@ -56,14 +56,21 @@ struct ProfileView: View {
     }
 
     func validateUser() {
+        guard let credentials = loadCredentials() else {
+            DispatchQueue.main.async {
+                self.validationStatus = "Missing credentials."
+            }
+            return
+        }
+
         guard let url = URL(string: "https://fydp-backend-production.up.railway.app/api/auth/login/") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: String] = [
-            "email": "wesleykim2002@gmail.com",
-            "password": "Password123"
+            "email": credentials.email,
+            "password": credentials.password
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
@@ -100,5 +107,34 @@ struct ProfileView: View {
         KeychainHelper.shared.delete(forKey: "accessToken")
         self.access = nil
         self.validationStatus = "Logged out successfully."
+    }
+
+    func loadCredentials() -> (email: String, password: String)? {
+        guard let path = Bundle.main.path(forResource: "Secrets", ofType: "plist") else {
+            print("Path for resource not found")
+            return nil
+        }
+        
+        guard let data = FileManager.default.contents(atPath: path) else {
+            print("Data conversion failed")
+            return nil
+        }
+        
+        do {
+            let propertyList = try PropertyListSerialization.propertyList(from: data, format: nil)
+            guard let dict = propertyList as? [String: String],
+                  let email = dict["email"],
+                  let password = dict["password"] else {
+                print("Dictionary casting or key extraction failed")
+                return nil
+            }
+            
+            return (email, password)
+            
+        } catch let error {
+            print("Error serializing: \(error.localizedDescription)")
+        }
+        
+        return nil
     }
 }

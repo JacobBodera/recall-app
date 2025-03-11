@@ -23,15 +23,20 @@ struct UploadImageView: View {
                         .frame(height: 200)
                         .overlay(Text("No Images Selected").foregroundColor(.gray))
                 } else {
-                    List(selectedImages, id: \.self) { image in
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 100)
-                            .cornerRadius(12)
-                            .shadow(radius: 4)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(selectedImages, id: \.self) { image in
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 120, height: 120)
+                                    .background(Color.clear)  // Ensure transparent background
+                                    .cornerRadius(12)
+                                    .shadow(radius: 4)
+                            }
+                        }
                     }
-                    .frame(height: 200)
+                    .frame(height: 150)  // Set height for horizontal scrolling images
                 }
 
                 // Allow selection of multiple images
