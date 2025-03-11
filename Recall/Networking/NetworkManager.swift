@@ -76,4 +76,27 @@ class NetworkManager: ObservableObject {
             }
         }.resume()
     }
+    
+    func deleteObject(id: Int) {
+        guard let url = URL(string: "https://fydp-backend-production.up.railway.app/ObjectTracking/\(id)/"),
+              let token = accessToken else {
+            print("Missing access token")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            if let error = error {
+                print("Error deleting object: \(error.localizedDescription)")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.objects.removeAll { $0.id == id }
+            }
+        }.resume()
+    }
 }

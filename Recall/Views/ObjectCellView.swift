@@ -3,7 +3,7 @@ import SwiftUI
 struct ObjectCellView: View {
     let object: ObjectTracking
 
-    func decodeBase64Image(_ base64String: String?) -> UIImage? {
+    private func decodeBase64Image(_ base64String: String?) -> UIImage? {
         guard let base64String = base64String,
               let imageData = Data(base64Encoded: base64String, options: .ignoreUnknownCharacters) else {
             return nil
@@ -30,7 +30,7 @@ struct ObjectCellView: View {
             VStack(alignment: .leading) {
                 Text(object.name)
                     .font(.headline)
-                Text("Last seen at: \(object.location_description ?? "Unknown")") // Handle nil safely
+                Text("Last seen at: \(object.location_description ?? "Unknown")")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
