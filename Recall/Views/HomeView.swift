@@ -5,12 +5,13 @@ struct HomeView: View {
     @State private var isCreatingObject = false
     @State private var objectToDelete: ObjectTracking?
     @State private var showDeleteConfirmation = false
+    @State private var selectedImage: IdentifiableImage? = nil
 
     var body: some View {
         NavigationView {
             List {
                 ForEach(networkManager.objects) { object in
-                    ObjectCellView(object: object)
+                    ObjectCellView(object: object, selectedImage: $selectedImage)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 objectToDelete = object
@@ -49,6 +50,9 @@ struct HomeView: View {
                 }
             } message: {
                 Text("Are you sure you want to delete \"\(objectToDelete?.name ?? "this object")\"?")
+            }
+            .fullScreenCover(item: $selectedImage) { identifiableImage in
+                FullScreenImageView(image: identifiableImage.image, selectedImage: $selectedImage)
             }
         }
     }
